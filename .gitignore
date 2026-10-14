@@ -1,0 +1,6 @@
+# Staged build and icon previews (scripts/build-app.sh, tools/make_icon.py --preview)
+build/
+
+# Python
+__pycache__/
+*.pyc
