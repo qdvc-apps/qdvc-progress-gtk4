@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs>
+<linearGradient id="side" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c0bfbc"/><stop offset="1" stop-color="#9a9996"/></linearGradient>
+<linearGradient id="badge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a7fd0"/><stop offset="1" stop-color="#2B5EA8"/></linearGradient>
+</defs>
+<rect x="10" y="20" width="108" height="96" rx="12" fill="url(#side)"/>
+<rect x="10" y="14" width="108" height="96" rx="12" fill="#ffffff"/>
+<path d="M10 26 a12 12 0 0 1 12 -12 h84 a12 12 0 0 1 12 12 v8 h-108 z" fill="#f0eff0"/>
+<rect x="65.4" y="17" width="13.2" height="90" rx="3" fill="#FFD60A" fill-opacity="0.28"/>
+<rect x="65.4" y="17" width="13.2" height="14" rx="3" fill="#FFD60A"/>
+<rect x="37.6" y="22" width="8" height="3" rx="1.5" fill="#c0bfbc"/>
+<rect x="52.8" y="22" width="8" height="3" rx="1.5" fill="#c0bfbc"/>
+<rect x="83.2" y="22" width="8" height="3" rx="1.5" fill="#c0bfbc"/>
+<rect x="98.4" y="22" width="8" height="3" rx="1.5" fill="#c0bfbc"/>
+<rect x="16" y="41" width="14" height="4" rx="2" fill="#c0bfbc"/>
+<rect x="16" y="56" width="14" height="4" rx="2" fill="#c0bfbc"/>
+<rect x="16" y="71" width="14" height="4" rx="2" fill="#c0bfbc"/>
+<rect x="35.5" y="37.5" width="12.2" height="12" rx="3" fill="#2B5EA8"/>
+<rect x="50.7" y="37.5" width="12.2" height="12" rx="3" fill="#5A9BDB"/>
+<rect x="81.1" y="37.5" width="12.2" height="12" rx="3" fill="#9CCBF2"/>
+<rect x="96.3" y="37.5" width="12.2" height="12" rx="3" fill="#CFE8FB"/>
+<rect x="50.7" y="52.5" width="12.2" height="12" rx="3" fill="#2EDB4F"/>
+<rect x="65.9" y="52.5" width="12.2" height="12" rx="3" fill="#5A9BDB"/>
+<rect x="81.1" y="52.5" width="12.2" height="12" rx="3" fill="#2B5EA8"/>
+<rect x="35.5" y="67.5" width="12.2" height="12" rx="3" fill="#9CCBF2"/>
+<rect x="65.9" y="67.5" width="12.2" height="12" rx="3" fill="#10275C"/>
+<rect x="81.1" y="67.5" width="12.2" height="12" rx="3" fill="#5A9BDB"/>
+<rect x="96.3" y="67.5" width="12.2" height="12" rx="3" fill="#9CCBF2"/>
+<rect x="14" y="82.5" width="100" height="1" fill="#deddda"/>
+<rect x="35.5" y="86" width="12.2" height="12" rx="3" fill="#E06A55"/>
+<rect x="50.7" y="86" width="12.2" height="12" rx="3" fill="#F29C85"/>
+<rect x="65.9" y="86" width="12.2" height="12" rx="3" fill="#C62F2F"/>
+<rect x="81.1" y="86" width="12.2" height="12" rx="3" fill="#C62F2F"/>
+<rect x="96.3" y="86" width="12.2" height="12" rx="3" fill="#F29C85"/>
+<circle cx="98" cy="99" r="19" fill="#10275C"/>
+<circle cx="98" cy="96" r="19" fill="url(#badge)"/>
+<path d="M86 104 L95 95 L100 100 L109 90" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M101 88 L110 88 L110 97 z" fill="#ffffff" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=QDVC Progress
+GenericName=Project Progress Tracker
+Comment=Track your projects and the work you put into them, day by day
+Exec=@BINDIR@/qdvc-progress %U
+Icon=qdvc.Progress
+Terminal=false
+Categories=Office;ProjectManagement;
+Keywords=project;progress;workload;timesheet;log;grid;
+StartupNotify=true
+StartupWMClass=qdvc-progress

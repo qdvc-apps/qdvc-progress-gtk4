@@ -1,0 +1,48 @@
+programmes:
+- name: Research
+- name: Teaching
+- name: Service
+projects:
+- key: arc-discovery-grant
+  id: '26AR'
+  title: ARC Discovery grant
+  programme: Research
+  target: DP27 round
+  collaborators: M. Chen, R. Okafor
+- key: soil-carbon-paper
+  id: '25SC'
+  title: Soil carbon paper
+  programme: Research
+  target: Nature Sustainability
+  collaborators: L. Ferreira
+  inactive_periods:
+  - from: 2026-09-21
+    to: 2026-10-02
+    label: With co-authors for comments
+- key: phd-supervision
+  title: PhD supervision
+  programme: Research
+  collaborators: J. Patel, S. Kim
+- key: envs-201-lectures
+  id: '26EN'
+  title: ENVS 201 lectures
+  programme: Teaching
+  target: Semester 2
+- key: envs-201-marking
+  title: ENVS 201 marking
+  programme: Teaching
+  target: Assignment 2
+- key: honours-coordination
+  title: Honours coordination
+  programme: Teaching
+- key: ethics-committee
+  title: Ethics committee
+  programme: Service
+- key: journal-reviews
+  title: Journal reviews
+  programme: Service
+  target: Two outstanding
+- key: open-day-2025
+  title: Open Day 2025
+  programme: Service
+  active: false

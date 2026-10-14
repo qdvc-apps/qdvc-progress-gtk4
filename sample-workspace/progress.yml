@@ -1,0 +1,11 @@
+format: 1
+sizes:
+  XS: 1
+  S: 2
+  M: 3
+  L: 4
+  XL: 5
+meeting_size: M
+due_value: 0
+planned_value: 0
+day_peak: 15
