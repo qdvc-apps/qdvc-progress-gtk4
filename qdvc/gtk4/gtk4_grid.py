@@ -486,7 +486,14 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
         # Whole device pixels: with a fractional scroll offset every line
         # would be blended over two pixels at half strength.
         sf = max(1, self.get_scale_factor())
-        self._px = 1.0 / sf
+        # One device pixel, or more under fractional scaling (125 %, 150 %),
+        # where the drawing may be rendered at the next whole scale and
+        # shrunk, which would thin one-pixel lines again.
+        native = self.get_native()
+        surface = native.get_surface() if native is not None else None
+        scale = surface.get_scale() if surface is not None and hasattr(surface, "get_scale") \
+            else sf
+        self._px = math.ceil(sf / max(scale, 1.0) - 1e-6) / sf if scale else 1.0 / sf
         ox, oy = round(self.ox * sf) / sf, round(self.oy * sf) / sf
         days = m.days_in(ox, ox + bw)
         rows = m.rows_in(oy, oy + bh)
@@ -572,7 +579,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
             top, h = m.row_tops[r], m.row_tops[r + 1] - m.row_tops[r]
             if row.is_programme:
                 rect(cr, m.day_x(days.start), top, m.day_x(days.stop) - m.day_x(days.start), h,
-                     (*pal.pane_bg[:3], 0.9))
+                     (*pal.pane_bg[:3], 0.85))
                 if s.show_programme_subtotals:
                     for d in days:
                         t = s.programme_total(row.name, s.date_at(d))
@@ -588,8 +595,8 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
                     continue
                 start, end = max(period.range.start, first_day), min(period.range.end, last_day)
                 x0, x1 = m.day_x(s.day_index(start)), m.day_x(s.day_index(end) + 1)
-                rect(cr, x0, top, x1 - x0, h, pal.tint(0.07))
-                hatch(cr, x0, top, x1 - x0, h, pal.text(0.30))
+                rect(cr, x0, top, x1 - x0, h, pal.tint(pal.INACTIVE_FILL))
+                hatch(cr, x0, top, x1 - x0, h, pal.tint(pal.HATCH))
                 label = period.label.strip()
                 if not label:
                     continue
@@ -631,8 +638,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
                  pal.line(weekstart))
         for r in rows:
             y = m.row_tops[r + 1]
-            w = 1 if s.rows[r].is_programme else self._px
-            rect(cr, ox, y - w, bw, w, pal.line(s.rows[r].is_programme))
+            rect(cr, ox, y - self._px, bw, self._px, pal.line(s.rows[r].is_programme))
         self._working_week_lines(cr, pal, days, m.day_x, y0, bottom - y0)
         self._draw_selection(cr, pal)
 
@@ -720,7 +726,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
 
         self._working_week_lines(cr, pal, days, x, ry[1], h_total - ry[1])
         for i in (1, 2, 3):
-            rect(cr, 0, ry[i] - self._px, bw, self._px, pal.line())
+            rect(cr, 0, ry[i] - self._px, bw, self._px, pal.rule())
         rect(cr, 0, h_total - 1, bw, 1, pal.line(True))
 
     def _draw_left(self, cr, pal, rows, oy, lw, bh):
@@ -743,7 +749,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
                 f.draw(cr, title, 22 * f.scale, y, tw + 2, h, f.programme, pal.text(0.9))
                 f.draw(cr, str(row.count), 22 * f.scale + tw + 8, y, 40, h, f.secondary,
                        pal.text(0.5), numeric=True)
-                rect(cr, 0, y + h - 1, lw, 1, pal.line(True))
+                rect(cr, 0, y + h - self._px, lw, self._px, pal.line(True))
                 continue
             p = s.project(row.key)
             if p is None:
@@ -800,7 +806,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
                 title += " \u25b2" if s.query.ascending else " \u25bc"
             f.draw(cr, title, cx + 7, top, cw - 12, hh, f.header_bold, pal.text(0.6))
             rect(cr, cx + cw - 1, top + 4, 1, hh - 8, pal.line(True))
-        rect(cr, 0, top - self._px, lw, self._px, pal.line())
+        rect(cr, 0, top - self._px, lw, self._px, pal.rule())
         rect(cr, 0, m.header_h - 1, lw, 1, pal.line(True))
         rect(cr, lw - 1, 0, 1, m.header_h, pal.line(True))
 

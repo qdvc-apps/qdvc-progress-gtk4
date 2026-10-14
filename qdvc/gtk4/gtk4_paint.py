@@ -19,8 +19,34 @@ from ..labels import CellLabel  # noqa: E402
 
 
 class Palette:
-    """Neutral colours from the current libadwaita theme (light or dark,
-    high contrast, accent colour), as (r, g, b, a)."""
+    """The grid's neutral colours, as (r, g, b, a), from the libadwaita theme
+    (light or dark, high contrast, accent colour) but with the macOS
+    edition's strengths.
+
+    The macOS edition draws with ``NSColor.separatorColor.withAlphaComponent(x)``,
+    which *replaces* the separator's own 10 % alpha: its grid lines are 35 %
+    foreground and its header rules 50 %, while unmodified separators (pane
+    edges, week starts) are 10 % at twice the width. Its frozen panes are
+    ``windowBackgroundColor`` (#ECECEC), a clearly darker grey than
+    libadwaita's window colour (#FAFAFA), so the panes are mixed here from
+    the view colour and the foreground instead of taken from the theme.
+    """
+
+    #: Alphas of the foreground, as in the macOS edition.
+    GRID_LINE = 0.35      # day and row lines (0.5 pt on macOS: one device pixel)
+    HEADER_RULE = 0.5     # between the header's rows
+    SEPARATOR = 0.10      # pane edges, week starts, month and week dividers (1 pt)
+    PANE_TINT = (0.075, 0.09)   # light, dark: the panes' step from the view colour
+    #: Inactive days. The macOS edition hatches at 28 %; thin diagonal lines
+    #: are antialiased softer on GNOME's typical 1× and fractional displays
+    #: than on a Retina Mac, so they are stronger here to look the same.
+    INACTIVE_FILL = 0.06
+    HATCH = 0.45
+
+    #: Greys are drawn this much nearer to the full foreground than their
+    #: nominal alpha (0.55 → 0.64, 0.35 → 0.48). GTK's grayscale text makes
+    #: dimmed text look lighter than AppKit's at the same alpha.
+    GREY_CONTRAST = 0.2
 
     def __init__(self, widget: Gtk.Widget):
         dark = Adw.StyleManager.get_default().get_dark()
@@ -28,8 +54,9 @@ class Palette:
         fg = widget.get_color()
         self.fg = (fg.red, fg.green, fg.blue, 1.0)
         self.view_bg = self._lookup(widget, "view_bg_color", (0.118,) * 3 if dark else (1.0,) * 3)
-        self.pane_bg = self._lookup(widget, "window_bg_color",
-                                    (0.141,) * 3 if dark else (0.98,) * 3)
+        t = self.PANE_TINT[1 if dark else 0]
+        self.pane_bg = tuple(v + (f - v) * t for v, f in zip(self.view_bg[:3], self.fg[:3])) \
+            + (1.0,)
         self.accent = self._accent(widget)
 
     @staticmethod
@@ -51,12 +78,6 @@ class Palette:
             return (c.red, c.green, c.blue, 1.0)
         return self._lookup(widget, "accent_bg_color", (0.208, 0.518, 0.894))
 
-    #: Greys are drawn this much nearer to the full foreground than their
-    #: nominal alpha (0.55 → 0.64, 0.35 → 0.48). GTK's grayscale text and
-    #: 1× screens make dimmed text look lighter than AppKit's at the same
-    #: alpha; this keeps the grid's secondary text as legible as on a Mac.
-    GREY_CONTRAST = 0.2
-
     def text(self, alpha=1.0):
         """The foreground, at ``alpha`` (0.55 secondary, 0.35 tertiary)."""
         if alpha < 0.9:
@@ -64,17 +85,20 @@ class Palette:
         return (*self.fg[:3], alpha)
 
     def line(self, strong=False):
-        """Grid lines; drawn one device pixel wide (see ProgressGrid._px)."""
-        if self.dark:
-            return (*self.fg[:3], 0.26 if strong else 0.13)
-        return (*self.fg[:3], 0.30 if strong else 0.14)
+        """``line()``: a grid line, one device pixel wide. ``line(True)``: a
+        separator (pane edges, week starts), one unit wide."""
+        return (*self.fg[:3], self.SEPARATOR if strong else self.GRID_LINE)
+
+    def rule(self):
+        """The lines between the header's rows, one device pixel wide."""
+        return (*self.fg[:3], self.HEADER_RULE)
 
     def tint(self, alpha):
         return (*self.fg[:3], alpha)
 
     @property
     def weekend(self):
-        return self.tint(0.06 if self.dark else 0.05)
+        return self.tint(0.045)
 
 
 def rgba(cr, c, alpha: float | None = None) -> None:

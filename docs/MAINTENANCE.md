@@ -109,12 +109,18 @@ with GLib timeouts and the tests leave inert.
 - The grid's adjustments must be configured whenever `Metrics` changes
   (`ProgressGrid._configure`), or the scrollbars disagree with the content.
 - Grid lines are whole device pixels: `_draw` rounds the scroll offset to
-  device pixels, and thin lines are `self._px` (one device pixel) wide at
-  whole-pixel positions. Never draw a 0.5-unit line or offset a line by 0.5:
-  on a 1× screen cairo blends it over two pixels at half strength, and the
-  grid looks washed out (the macOS edition's 0.5 pt lines are one crisp
-  pixel on a Retina screen). Grey levels are in `gtk4_paint.Palette`
-  (`line()`, `weekend`, and `GREY_CONTRAST` for dimmed text).
+  device pixels, and thin lines are `self._px` wide (one device pixel, more
+  under fractional scaling) at whole-pixel positions. Never draw a 0.5-unit
+  line or offset a line by 0.5: on a 1× screen cairo blends it over two
+  pixels at half strength, and the grid looks washed out.
+- The neutral strengths are the macOS edition's *effective* values, named in
+  `gtk4_paint.Palette`: grid lines 35 % foreground, header rules 50 %,
+  separators 10 %, panes #ECECEC-like (`PANE_TINT`), weekends 4.5 %. Note
+  that AppKit's `withAlphaComponent(x)` replaces a colour's alpha rather than
+  scaling it, so `separatorColor.withAlphaComponent(0.35)` is 35 % black, not
+  35 % of the separator. The inactive hatching (`HATCH`) and dimmed text
+  (`GREY_CONTRAST`) are deliberately a little stronger than on macOS, as
+  GNOME's antialiasing renders them lighter.
 
 ## 4. Deviations from the specification
 
