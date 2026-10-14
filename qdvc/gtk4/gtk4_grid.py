@@ -298,6 +298,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
         self._menu: Gtk.PopoverMenu | None = None
         self.callout = NoteCallout(self)
         self._hsig = self._vsig = None
+        self._px = 1.0           # one device pixel, in widget units
 
         self.connect("notify::hadjustment", self._on_adjustment_set, "h")
         self.connect("notify::vadjustment", self._on_adjustment_set, "v")
@@ -482,7 +483,11 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
         s, m = self.s, self.m
         pal = Palette(self)
         lw, top, bw, bh = self._viewport()
-        ox, oy = self.ox, self.oy
+        # Whole device pixels: with a fractional scroll offset every line
+        # would be blended over two pixels at half strength.
+        sf = max(1, self.get_scale_factor())
+        self._px = 1.0 / sf
+        ox, oy = round(self.ox * sf) / sf, round(self.oy * sf) / sf
         days = m.days_in(ox, ox + bw)
         rows = m.rows_in(oy, oy + bh)
 
@@ -535,13 +540,16 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
     def _working_week_lines(self, cr, pal, days, x_of, y, h):
         if not self.s.outline_working_week or h <= 0:
             return
+        # 1.5 px, as the macOS edition's 1.5 pt, rounded to whole device
+        # pixels and centred on the column boundary.
+        px = self._px
+        w = max(1, round(1.5 / px)) * px
         rgba(cr, pal.text(0.85))
         for d in range(days.start - 1, days.stop + 1):
             wd = self.s.date_at(d).isoweekday()
-            if wd == 1:
-                cr.rectangle(x_of(d) - 0.75, y, 1.5, h)
-            elif wd == 5:
-                cr.rectangle(x_of(d + 1) - 0.75, y, 1.5, h)
+            if wd in (1, 5):
+                edge = x_of(d) if wd == 1 else x_of(d + 1)
+                cr.rectangle(round((edge - w / 2) / px) * px, y, w, h)
         cr.fill()
 
     def _draw_body(self, cr, pal, days, rows, ox, oy, bw, bh):
@@ -580,8 +588,8 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
                     continue
                 start, end = max(period.range.start, first_day), min(period.range.end, last_day)
                 x0, x1 = m.day_x(s.day_index(start)), m.day_x(s.day_index(end) + 1)
-                rect(cr, x0, top, x1 - x0, h, pal.tint(0.05))
-                hatch(cr, x0, top, x1 - x0, h, pal.text(0.22))
+                rect(cr, x0, top, x1 - x0, h, pal.tint(0.07))
+                hatch(cr, x0, top, x1 - x0, h, pal.text(0.30))
                 label = period.label.strip()
                 if not label:
                     continue
@@ -619,12 +627,12 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
         bottom = min(y1, m.content_h)
         for d in days:
             weekstart = s.date_at(d).isoweekday() == 1
-            rect(cr, m.day_x(d), y0, 1 if weekstart else 0.5, max(0, bottom - y0),
+            rect(cr, m.day_x(d), y0, 1 if weekstart else self._px, max(0, bottom - y0),
                  pal.line(weekstart))
         for r in rows:
             y = m.row_tops[r + 1]
-            rect(cr, ox, y - 0.5, bw, 0.5 if not s.rows[r].is_programme else 1,
-                 pal.line(s.rows[r].is_programme))
+            w = 1 if s.rows[r].is_programme else self._px
+            rect(cr, ox, y - w, bw, w, pal.line(s.rows[r].is_programme))
         self._working_week_lines(cr, pal, days, m.day_x, y0, bottom - y0)
         self._draw_selection(cr, pal)
 
@@ -712,7 +720,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
 
         self._working_week_lines(cr, pal, days, x, ry[1], h_total - ry[1])
         for i in (1, 2, 3):
-            rect(cr, 0, ry[i] - 0.5, bw, 0.5, pal.line())
+            rect(cr, 0, ry[i] - self._px, bw, self._px, pal.line())
         rect(cr, 0, h_total - 1, bw, 1, pal.line(True))
 
     def _draw_left(self, cr, pal, rows, oy, lw, bh):
@@ -735,7 +743,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
                 f.draw(cr, title, 22 * f.scale, y, tw + 2, h, f.programme, pal.text(0.9))
                 f.draw(cr, str(row.count), 22 * f.scale + tw + 8, y, 40, h, f.secondary,
                        pal.text(0.5), numeric=True)
-                rect(cr, 0, y + h - 0.5, lw, 1, pal.line(True))
+                rect(cr, 0, y + h - 1, lw, 1, pal.line(True))
                 continue
             p = s.project(row.key)
             if p is None:
@@ -756,10 +764,10 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
                     f.draw(cr, p.target, tx, y, tw, h, f.secondary, pal.text(0.55))
                 else:
                     f.draw(cr, p.collaborators, tx, y, tw, h, f.secondary, pal.text(0.55))
-            rect(cr, 0, y + h - 0.5, lw, 0.5, pal.line())
+            rect(cr, 0, y + h - self._px, lw, self._px, pal.line())
         height = min(bh, m.content_h - oy)
         for _, cx, cw in m.columns[:-1]:
-            rect(cr, cx + cw - 0.5, 0, 0.5, max(0, height), pal.line())
+            rect(cr, cx + cw - self._px, 0, self._px, max(0, height), pal.line())
         rect(cr, lw - 1, 0, 1, bh, pal.line(True))
 
     def _draw_chevron(self, cr, pal, cx, cy, collapsed):
@@ -792,7 +800,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
                 title += " \u25b2" if s.query.ascending else " \u25bc"
             f.draw(cr, title, cx + 7, top, cw - 12, hh, f.header_bold, pal.text(0.6))
             rect(cr, cx + cw - 1, top + 4, 1, hh - 8, pal.line(True))
-        rect(cr, 0, top - 0.5, lw, 0.5, pal.line())
+        rect(cr, 0, top - self._px, lw, self._px, pal.line())
         rect(cr, 0, m.header_h - 1, lw, 1, pal.line(True))
         rect(cr, lw - 1, 0, 1, m.header_h, pal.line(True))
 
@@ -829,7 +837,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
                 if pal.dark and level <= 0.3:
                     colour = pal.text(0.85)
                 f.centred(cr, str(t), cx, y, m.cell_w, sub, f.small, colour)
-            rect(cr, 0, y + sub - 0.5, bw, 0.5, pal.line())
+            rect(cr, 0, y + sub - self._px, bw, self._px, pal.line())
 
         t0 = m.totals_top
         r0, r1 = m.footer_rows
@@ -864,7 +872,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
         self._working_week_lines(cr, pal, days, x, 0, fh)
         rect(cr, 0, 0, bw, 1, pal.line(True))
         if t0 > 0:
-            rect(cr, 0, t0 - 0.5, bw, 1, pal.line(True))
+            rect(cr, 0, t0 - 1, bw, 1, pal.line(True))
 
     def _span(self, cr, pal, total, peak, x, y, w, h):
         f = self.fonts
@@ -891,7 +899,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
             y = i * sub
             f.draw(cr, programme_title(programme), 8, y, lw - 16, sub, f.secondary,
                    pal.text(0.55), "right")
-            rect(cr, 0, y + sub - 0.5, lw, 0.5, pal.line())
+            rect(cr, 0, y + sub - self._px, lw, self._px, pal.line())
         t0 = m.totals_top
         r0, r1 = m.footer_rows
         scope = "shown" if s.totals_scope is TotalsScope.VISIBLE else "all"
@@ -901,7 +909,7 @@ class ProgressGrid(Gtk.DrawingArea, Gtk.Scrollable):
                pal.text(0.55), "right")
         rect(cr, 0, 0, lw, 1, pal.line(True))
         if t0 > 0:
-            rect(cr, 0, t0 - 0.5, lw, 1, pal.line(True))
+            rect(cr, 0, t0 - 1, lw, 1, pal.line(True))
         rect(cr, lw - 1, 0, 1, fh, pal.line(True))
 
     # ------------------------------------------------------------------

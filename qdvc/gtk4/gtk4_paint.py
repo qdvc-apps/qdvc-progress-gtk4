@@ -51,19 +51,30 @@ class Palette:
             return (c.red, c.green, c.blue, 1.0)
         return self._lookup(widget, "accent_bg_color", (0.208, 0.518, 0.894))
 
+    #: Greys are drawn this much nearer to the full foreground than their
+    #: nominal alpha (0.55 → 0.64, 0.35 → 0.48). GTK's grayscale text and
+    #: 1× screens make dimmed text look lighter than AppKit's at the same
+    #: alpha; this keeps the grid's secondary text as legible as on a Mac.
+    GREY_CONTRAST = 0.2
+
     def text(self, alpha=1.0):
         """The foreground, at ``alpha`` (0.55 secondary, 0.35 tertiary)."""
+        if alpha < 0.9:
+            alpha = alpha + (1 - alpha) * self.GREY_CONTRAST
         return (*self.fg[:3], alpha)
 
     def line(self, strong=False):
-        return (*self.fg[:3], 0.22 if strong else 0.09)
+        """Grid lines; drawn one device pixel wide (see ProgressGrid._px)."""
+        if self.dark:
+            return (*self.fg[:3], 0.26 if strong else 0.13)
+        return (*self.fg[:3], 0.30 if strong else 0.14)
 
     def tint(self, alpha):
         return (*self.fg[:3], alpha)
 
     @property
     def weekend(self):
-        return self.tint(0.05 if self.dark else 0.04)
+        return self.tint(0.06 if self.dark else 0.05)
 
 
 def rgba(cr, c, alpha: float | None = None) -> None:

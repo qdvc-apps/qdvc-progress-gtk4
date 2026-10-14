@@ -108,6 +108,13 @@ with GLib timeouts and the tests leave inert.
 - Atomic writes keep the file mode (mkstemp's private 0600 is not kept).
 - The grid's adjustments must be configured whenever `Metrics` changes
   (`ProgressGrid._configure`), or the scrollbars disagree with the content.
+- Grid lines are whole device pixels: `_draw` rounds the scroll offset to
+  device pixels, and thin lines are `self._px` (one device pixel) wide at
+  whole-pixel positions. Never draw a 0.5-unit line or offset a line by 0.5:
+  on a 1× screen cairo blends it over two pixels at half strength, and the
+  grid looks washed out (the macOS edition's 0.5 pt lines are one crisp
+  pixel on a Retina screen). Grey levels are in `gtk4_paint.Palette`
+  (`line()`, `weekend`, and `GREY_CONTRAST` for dimmed text).
 
 ## 4. Deviations from the specification
 

@@ -97,6 +97,18 @@ def grid_shot():
 
 
 @step
+def inactive():
+    s = app.window.s
+    s.go_to(Date(2026, 9, 28))
+    s.select(CellRef("journal-reviews", Date(2026, 9, 28)))
+
+
+@step
+def inactive_shot():
+    shoot("inactive")
+
+
+@step
 def project_panel():
     app.window.show_project()
 
